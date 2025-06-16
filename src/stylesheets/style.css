@@ -1,0 +1,6 @@
+.letter--correct {
+  color: green;
+}
+.letter--incorrect {
+  color: red;
+}
