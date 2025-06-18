@@ -1,6 +1,39 @@
 .letter--correct {
-  color: green;
+  color: var(--color-correct);
 }
 .letter--incorrect {
-  color: red;
+  color: var(--color-incorrect);
+}
+.test-words {
+  font-size: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1ch;
+}
+.word {
+  display: inline-block;
+  position: relative;
+  --color-correct: green;
+  --color-incorrect: red;
+}
+.word::after {
+  content: "";
+  width: 100%;
+  border-radius: 0.025rem;
+  background-color: var(--color-incorrect);
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+.word:is(.word--incorrect, .word--current)::after {
+  height: 2px;
+}
+.word:is(.word--current)::after {
+  background-color: black;
+}
+.word:is(.word--correct)::after {
+  background-color: var(--color-correct);
+}
+.word--incorrect.word--current::after {
+  background-color: var(--color-incorrect);
 }
