@@ -8,7 +8,11 @@ const sampleWords =
 
 const App = () => {
   const timer = useTimer(30)
+  const [mistyped, setMistyped] = useState(0)
+  const [finalMistakes, setFinalMistakes] = useState(0)
+  const [totalTyped, setTotalTyped] = useState(0)
   useEffect(() => {}, [timer.paused])
+  console.log(finalMistakes, mistyped, totalTyped)
   return (
     <>
       <header></header>
@@ -16,6 +20,9 @@ const App = () => {
         <div>{timer.time}</div>
         <button
           onClick={() => {
+            setFinalMistakes(0)
+            setTotalTyped(0)
+            setMistyped(0)
             timer.reset()
             timer.play()
           }}
@@ -23,26 +30,74 @@ const App = () => {
           {!timer.expired && "Start"}
           {timer.expired && "Reset"}
         </button>
-        {!timer.expired && <TestWords paused={timer.paused} />}
-        {timer.expired && <div>I suppose the test is done</div>}
+        {!timer.expired && (
+          <TestWords
+            paused={timer.paused}
+            setFinalMistakes={setFinalMistakes}
+            setMistyped={setMistyped}
+            setTotalTyped={setTotalTyped}
+          />
+        )}
+        {timer.expired && (
+          <div>
+            <div>
+              Speed: {(totalTyped - finalMistakes) / 5 / (timer.duration / 60)}
+              wpm
+            </div>
+            <div>Raw Speed: {totalTyped / 5 / (timer.duration / 60)}</div>
+            <div>
+              Accuracy:{" "}
+              {Math.floor(((totalTyped - mistyped) / totalTyped) * 100)}%
+            </div>
+          </div>
+        )}
       </main>
       <footer></footer>
     </>
   )
 }
 
-const TestWords = ({ paused }) => {
+const TestWords = ({
+  paused,
+  setFinalMistakes,
+  setMistyped,
+  setTotalTyped,
+}) => {
   const [words, setWords] = useState(sampleWords.split(" "))
   const [bufferedWords, setBufferedWords] = useState([])
   const [buffer, setBuffer] = useState("")
   useEffect(() => {
     if (paused) return
     const getInput = e => {
-      if (e.key.length === 1 && e.key !== " ") {
-        setBuffer(buffer + e.key)
-      } else if (e.key === " " && buffer.length) {
-        setBufferedWords(bufferedWords.concat(buffer))
-        setBuffer("")
+      const incorrect =
+        bufferedWords.reduce((acc, curr, index) => {
+          let count = 0
+          if (!words[index]) return acc
+          for (let i = 0; i < curr.length; i++) {
+            if (!words[index][i] || curr[i] != words[index][i]) {
+              count++
+            }
+          }
+          return acc + count
+        }, 0) +
+        Array.from(buffer).reduce((acc, curr, index) => {
+          if (curr !== words[bufferedWords.length][index]) {
+            return acc + 1
+          }
+          return acc
+        }, 0)
+      setFinalMistakes(incorrect)
+      if (e.key.length === 1) {
+        if (e.key === " " && buffer.length) {
+          setBufferedWords(bufferedWords.concat(buffer))
+          setBuffer("")
+        } else if (e.key !== " ") {
+          if (words[bufferedWords.length][buffer.length] != e.key) {
+            setMistyped(mistyped => mistyped + 1)
+          }
+          setTotalTyped(total => total + 1)
+          setBuffer(buffer + e.key)
+        }
       } else if (e.key === "Backspace") {
         let newBuffer = ""
         if (!buffer.length && bufferedWords.length) {
@@ -81,6 +136,7 @@ const TestWords = ({ paused }) => {
           "word--correct": wordCorrect,
           "word--incorrect": !wordCorrect && typedWord,
         })
+        const overflow = typedWord.slice(word.length, typedWord.length) || ""
         return (
           <div className={wordClass}>
             {Array.from(word).map((letter, index) => {
@@ -89,6 +145,13 @@ const TestWords = ({ paused }) => {
                 letter: true,
                 "letter--correct": typedLetter === letter,
                 "letter--incorrect": typedLetter && typedLetter !== letter,
+              })
+              return <span className={letterClass}>{letter}</span>
+            })}
+            {Array.from(overflow).map(letter => {
+              const letterClass = classNames({
+                letter: true,
+                "letter--overflow": true,
               })
               return <span className={letterClass}>{letter}</span>
             })}

@@ -4,6 +4,9 @@
 .letter--incorrect {
   color: var(--color-incorrect);
 }
+.letter--overflow {
+  color: purple;
+}
 .test-words {
   font-size: 2rem;
   display: flex;

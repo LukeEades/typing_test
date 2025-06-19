@@ -37,7 +37,16 @@ const useTimer = (initialTime, onFinish) => {
     setExpired(false)
     setPaused(true)
   }
-  return { time, play, pause, toggle, paused, reset, expired }
+  return {
+    time,
+    play,
+    pause,
+    toggle,
+    paused,
+    reset,
+    expired,
+    duration: initialTime,
+  }
 }
 
 export default useTimer
