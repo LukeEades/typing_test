@@ -6,54 +6,157 @@ import useTimer from "./hooks/useTimer"
 const sampleWords =
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc mattis, turpis ut posuere consequat, risus ex feugiat nisi, sed auctor ligula sapien ut risus. Vivamus nec mauris porttitor ante posuere facilisis. Morbi dolor erat, hendrerit sed gravida et, egestas ac libero. Aenean tempus massa id finibus ullamcorper. Vestibulum metus magna, rutrum in dignissim nec, mollis vel diam. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Quisque pretium sem nulla, sed consequat massa pellentesque quis. Quisque feugiat nulla non augue placerat scelerisque. Nullam porta, nisl eget feugiat dapibus, elit nunc faucibus ipsum, ac hendrerit erat ipsum a purus. Nunc lacinia, enim eget interdum facilisis, eros diam laoreet sapien, ut semper augue nibh ac dolor. Sed in sapien sem"
 
+const loadSettings = () => {
+  const saved = localStorage.getItem("settings")
+  if (saved) {
+    return JSON.parse(saved)
+  }
+  return {
+    time: 30,
+    theme: "dark",
+    capitalization: false,
+    punctuation: false,
+  }
+}
+
 const App = () => {
-  const timer = useTimer(30)
-  const [mistyped, setMistyped] = useState(0)
-  const [finalMistakes, setFinalMistakes] = useState(0)
-  const [totalTyped, setTotalTyped] = useState(0)
-  useEffect(() => {}, [timer.paused])
-  console.log(finalMistakes, mistyped, totalTyped)
+  const [settings, setSettings] = useState(loadSettings())
+  const saveSettings = newSettings => {
+    setSettings(newSettings)
+    localStorage.setItem("settings", JSON.stringify(newSettings))
+  }
   return (
     <>
       <header></header>
       <main>
-        <div>{timer.time}</div>
+        <Test settings={settings} />
+        <Settings settings={settings} setSettings={saveSettings} />
+      </main>
+      <footer></footer>
+    </>
+  )
+}
+
+const Settings = ({ settings, setSettings }) => {
+  return (
+    <div>
+      <ul>
+        <li>
+          <span>Time</span>
+          <input
+            type="number"
+            aria-label="timer-value"
+            value={settings.time}
+            onInput={e => {
+              setSettings({
+                ...settings,
+                time: e.target.value,
+              })
+            }}
+          />
+        </li>
+        <li>
+          <span>Theme</span>
+          <select
+            name="theme"
+            onInput={e => {
+              setSettings({
+                ...settings,
+                theme: e.target.value,
+              })
+            }}
+            value={settings.theme}
+          >
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+          </select>
+        </li>
+        <li>
+          <span>Capitalization</span>
+          <select
+            name="capitalization"
+            onInput={e => {
+              setSettings({
+                ...settings,
+                capitalization: e.target.value,
+              })
+            }}
+            value={settings.capitalization}
+          >
+            <option value={false}>Off</option>
+            <option value={true}>On</option>
+          </select>
+        </li>
+        <li>
+          <span>Punctation</span>
+          <span>{settings.punctuation}</span>
+          <select
+            name="punctuation"
+            onInput={e => {
+              setSettings({
+                ...settings,
+                punctuation: e.target.value,
+              })
+            }}
+            value={settings.punctuation}
+          >
+            <option value={false}>Off</option>
+            <option value={true}>On</option>
+          </select>
+        </li>
+      </ul>
+    </div>
+  )
+}
+
+const Test = ({ settings }) => {
+  const timer = useTimer(settings.time)
+  const [mistyped, setMistyped] = useState(0)
+  const [finalMistakes, setFinalMistakes] = useState(0)
+  const [totalTyped, setTotalTyped] = useState(0)
+  const [started, setStarted] = useState(false)
+  useEffect(() => {
+    timer.setLimit(settings.time)
+  }, [settings.time])
+  return (
+    <div>
+      <div>{timer.time}</div>
+      {!started && (
         <button
           onClick={() => {
             setFinalMistakes(0)
             setTotalTyped(0)
             setMistyped(0)
+            setStarted(true)
             timer.reset()
             timer.play()
           }}
         >
-          {!timer.expired && "Start"}
-          {timer.expired && "Reset"}
+          Start
         </button>
-        {!timer.expired && (
-          <TestWords
-            paused={timer.paused}
-            setFinalMistakes={setFinalMistakes}
-            setMistyped={setMistyped}
-            setTotalTyped={setTotalTyped}
-          />
-        )}
-        {timer.expired && (
+      )}
+      {!timer.expired && (
+        <TestWords
+          paused={timer.paused}
+          setFinalMistakes={setFinalMistakes}
+          setMistyped={setMistyped}
+          setTotalTyped={setTotalTyped}
+        />
+      )}
+      {timer.expired && (
+        <div>
           <div>
-            <div>
-              Speed: {(totalTyped - finalMistakes) / 5 / (timer.duration / 60)}
-              wpm
-            </div>
-            <div>Raw Speed: {totalTyped / 5 / (timer.duration / 60)}</div>
-            <div>
-              Accuracy:{" "}
-              {Math.floor(((totalTyped - mistyped) / totalTyped) * 100)}%
-            </div>
+            Speed: {(totalTyped - finalMistakes) / 5 / (timer.duration / 60)}
+            wpm
           </div>
-        )}
-      </main>
-      <footer></footer>
-    </>
+          <div>Raw Speed: {totalTyped / 5 / (timer.duration / 60)}</div>
+          <div>
+            Accuracy: {Math.floor(((totalTyped - mistyped) / totalTyped) * 100)}
+            %
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
