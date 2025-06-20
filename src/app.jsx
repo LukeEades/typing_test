@@ -52,7 +52,7 @@ const App = () => {
 }
 
 const Test = ({ settings }) => {
-  const timer = useTimer(settings.time)
+  const timer = useTimer(settings.time, () => {})
   const [mistyped, setMistyped] = useState(0)
   const [finalMistakes, setFinalMistakes] = useState(0)
   const [totalTyped, setTotalTyped] = useState(0)
@@ -62,8 +62,8 @@ const Test = ({ settings }) => {
   }, [settings])
   return (
     <div>
-      <div>{timer.time}</div>
-      {!started && (
+      {!timer.expired && <div>{timer.time}</div>}
+      {(!started || timer.expired) && (
         <button
           onClick={() => {
             setFinalMistakes(0)
@@ -74,15 +74,16 @@ const Test = ({ settings }) => {
             timer.play()
           }}
         >
-          Start
+          {timer.expired ? "Restart" : "Start"}
         </button>
       )}
-      {!timer.expired && !timer.started && (
+      {!timer.expired && started && (
         <TestWords
           paused={timer.paused}
           setFinalMistakes={setFinalMistakes}
           setMistyped={setMistyped}
           setTotalTyped={setTotalTyped}
+          started={started}
         />
       )}
       {timer.expired && (
@@ -107,15 +108,21 @@ const TestWords = ({
   setFinalMistakes,
   setMistyped,
   setTotalTyped,
+  started,
 }) => {
   const [bufferedWords, setBufferedWords] = useState([])
   const [buffer, setBuffer] = useState("")
-  const [words, setWords] = useState(sampleWords.split(" "))
+  const [words, setWords] = useState([])
   const addWords = () => {
     let newWords = faker.word.words(50).split(" ")
-    console.log(newWords)
     setWords(words.concat(newWords))
   }
+  useEffect(() => {
+    addWords()
+    return () => {
+      setWords([])
+    }
+  }, [started])
   useEffect(() => {
     if (paused) return
     const getInput = e => {
@@ -137,6 +144,9 @@ const TestWords = ({
           return acc
         }, 0)
       setFinalMistakes(incorrect)
+      if (bufferedWords.length > (3 / 4) * words.length) {
+        addWords()
+      }
       if (e.key.length === 1) {
         if (e.key === " " && buffer.length) {
           setBufferedWords(bufferedWords.concat(buffer))
@@ -166,7 +176,7 @@ const TestWords = ({
     return () => {
       window.removeEventListener("keydown", getInput)
     }
-  }, [buffer, bufferedWords, paused])
+  }, [buffer, bufferedWords, paused, words])
   return (
     <div className="test-words">
       {words.map((word, wordIndex) => {

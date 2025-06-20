@@ -10,15 +10,15 @@ const useTimer = (initialTime, onFinish) => {
       return
     }
     let intervalID = setInterval(() => {
-      if (time <= 0) {
-        setTime(0)
+      let newTime = time - 1
+      if (newTime <= 0) {
+        newTime = 0
         setExpired(true)
         onFinish && onFinish()
         pause()
         clearInterval(intervalID)
-        return
       }
-      setTime(time - 1)
+      setTime(newTime)
     }, 1000)
     return () => {
       clearInterval(intervalID)
@@ -41,7 +41,6 @@ const useTimer = (initialTime, onFinish) => {
   const setLimit = newLimit => {
     setTimerLimit(newLimit)
     setTime(newLimit)
-    reset()
   }
   return {
     time,
