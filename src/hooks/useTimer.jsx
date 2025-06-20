@@ -2,7 +2,7 @@ import { useState, useEffect } from "preact/hooks"
 
 const useTimer = (initialTime, onFinish) => {
   const [timerLimit, setTimerLimit] = useState(initialTime)
-  const [time, setTime] = useState(initialTime)
+  const [time, setTime] = useState(timerLimit)
   const [paused, setPaused] = useState(true)
   const [expired, setExpired] = useState(false)
   useEffect(() => {
@@ -34,7 +34,7 @@ const useTimer = (initialTime, onFinish) => {
     paused ? play() : pause()
   }
   const reset = () => {
-    setTime(initialTime)
+    setTime(timerLimit)
     setExpired(false)
     setPaused(true)
   }
@@ -51,7 +51,7 @@ const useTimer = (initialTime, onFinish) => {
     paused,
     reset,
     expired,
-    duration: initialTime,
+    duration: timerLimit,
     setLimit,
   }
 }

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.8.0",
     "classnames": "^2.5.1",
     "preact": "^10.26.5"
   },

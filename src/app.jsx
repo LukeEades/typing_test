@@ -2,6 +2,12 @@ import "./stylesheets/style.css"
 import classNames from "classnames"
 import { useState, useEffect } from "preact/hooks"
 import useTimer from "./hooks/useTimer"
+import { Faker, en } from "@faker-js/faker"
+import Settings from "./components/Settings"
+
+const faker = new Faker({
+  locale: [en],
+})
 
 const sampleWords =
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc mattis, turpis ut posuere consequat, risus ex feugiat nisi, sed auctor ligula sapien ut risus. Vivamus nec mauris porttitor ante posuere facilisis. Morbi dolor erat, hendrerit sed gravida et, egestas ac libero. Aenean tempus massa id finibus ullamcorper. Vestibulum metus magna, rutrum in dignissim nec, mollis vel diam. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Quisque pretium sem nulla, sed consequat massa pellentesque quis. Quisque feugiat nulla non augue placerat scelerisque. Nullam porta, nisl eget feugiat dapibus, elit nunc faucibus ipsum, ac hendrerit erat ipsum a purus. Nunc lacinia, enim eget interdum facilisis, eros diam laoreet sapien, ut semper augue nibh ac dolor. Sed in sapien sem"
@@ -13,11 +19,13 @@ const loadSettings = () => {
   }
   return {
     time: 30,
-    theme: "dark",
+    theme: "auto",
     capitalization: false,
     punctuation: false,
   }
 }
+
+const root = document.getElementById("app")
 
 const App = () => {
   const [settings, setSettings] = useState(loadSettings())
@@ -25,87 +33,21 @@ const App = () => {
     setSettings(newSettings)
     localStorage.setItem("settings", JSON.stringify(newSettings))
   }
+  useEffect(() => {
+    root.classList.remove("theme--dark")
+    root.classList.remove("theme--light")
+    root.classList.remove("theme--auto")
+    root.classList.add(`theme--${settings.theme}`)
+  }, [settings])
   return (
     <>
       <header></header>
       <main>
-        <Test settings={settings} />
         <Settings settings={settings} setSettings={saveSettings} />
+        <Test settings={settings} />
       </main>
       <footer></footer>
     </>
-  )
-}
-
-const Settings = ({ settings, setSettings }) => {
-  return (
-    <div>
-      <ul>
-        <li>
-          <span>Time</span>
-          <input
-            type="number"
-            aria-label="timer-value"
-            value={settings.time}
-            onInput={e => {
-              setSettings({
-                ...settings,
-                time: e.target.value,
-              })
-            }}
-          />
-        </li>
-        <li>
-          <span>Theme</span>
-          <select
-            name="theme"
-            onInput={e => {
-              setSettings({
-                ...settings,
-                theme: e.target.value,
-              })
-            }}
-            value={settings.theme}
-          >
-            <option value="dark">Dark</option>
-            <option value="light">Light</option>
-          </select>
-        </li>
-        <li>
-          <span>Capitalization</span>
-          <select
-            name="capitalization"
-            onInput={e => {
-              setSettings({
-                ...settings,
-                capitalization: e.target.value,
-              })
-            }}
-            value={settings.capitalization}
-          >
-            <option value={false}>Off</option>
-            <option value={true}>On</option>
-          </select>
-        </li>
-        <li>
-          <span>Punctation</span>
-          <span>{settings.punctuation}</span>
-          <select
-            name="punctuation"
-            onInput={e => {
-              setSettings({
-                ...settings,
-                punctuation: e.target.value,
-              })
-            }}
-            value={settings.punctuation}
-          >
-            <option value={false}>Off</option>
-            <option value={true}>On</option>
-          </select>
-        </li>
-      </ul>
-    </div>
   )
 }
 
@@ -117,7 +59,7 @@ const Test = ({ settings }) => {
   const [started, setStarted] = useState(false)
   useEffect(() => {
     timer.setLimit(settings.time)
-  }, [settings.time])
+  }, [settings])
   return (
     <div>
       <div>{timer.time}</div>
@@ -135,7 +77,7 @@ const Test = ({ settings }) => {
           Start
         </button>
       )}
-      {!timer.expired && (
+      {!timer.expired && !timer.started && (
         <TestWords
           paused={timer.paused}
           setFinalMistakes={setFinalMistakes}
@@ -166,9 +108,14 @@ const TestWords = ({
   setMistyped,
   setTotalTyped,
 }) => {
-  const [words, setWords] = useState(sampleWords.split(" "))
   const [bufferedWords, setBufferedWords] = useState([])
   const [buffer, setBuffer] = useState("")
+  const [words, setWords] = useState(sampleWords.split(" "))
+  const addWords = () => {
+    let newWords = faker.word.words(50).split(" ")
+    console.log(newWords)
+    setWords(words.concat(newWords))
+  }
   useEffect(() => {
     if (paused) return
     const getInput = e => {

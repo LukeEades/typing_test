@@ -1,0 +1,27 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+:root {
+  --color-primary: #0e121b;
+  --color-secondary: #f2f3f8;
+  --color-correct: #5368a2;
+  --color-incorrect: #c5445e;
+}
+:root.theme--dark {
+  --color-primary: #0e121b;
+  --color-secondary: #f2f3f8;
+}
+:root.theme--light {
+  --color-primary: #f2f3f8;
+  --color-secondary: #0e121b;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-primary: #f2f3f8;
+    --color-secondary: #0e121b;
+  }
+}
