@@ -5,6 +5,7 @@ const useTimer = (initialTime, onFinish) => {
   const [time, setTime] = useState(timerLimit)
   const [paused, setPaused] = useState(true)
   const [expired, setExpired] = useState(false)
+  const [lastElapsed, setLastElapsed] = useState(0)
   useEffect(() => {
     if (paused) {
       return
@@ -18,6 +19,7 @@ const useTimer = (initialTime, onFinish) => {
         pause()
         clearInterval(intervalID)
       }
+      setLastElapsed(timerLimit - newTime)
       setTime(newTime)
     }, 1000)
     return () => {
@@ -37,6 +39,7 @@ const useTimer = (initialTime, onFinish) => {
     setTime(timerLimit)
     setExpired(false)
     setPaused(true)
+    setLastElapsed(0)
   }
   const setLimit = newLimit => {
     setTimerLimit(newLimit)
@@ -52,6 +55,7 @@ const useTimer = (initialTime, onFinish) => {
     expired,
     duration: timerLimit,
     setLimit,
+    elapsed: lastElapsed,
   }
 }
 

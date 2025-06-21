@@ -8,17 +8,21 @@
 .letter--overflow {
   color: purple;
 }
+.words-wrapper {
+  padding: 1rem;
+}
 .test-words {
-  font-size: 2rem;
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   column-gap: 1ch;
+  color: var(--color-secondary);
+  font-size: 2rem;
+  overflow: hidden;
 }
 .word {
   display: inline-block;
   position: relative;
-  --color-correct: teal;
-  --color-incorrect: red;
 }
 .word::after {
   content: "";
@@ -33,7 +37,7 @@
   height: 2px;
 }
 .word:is(.word--current)::after {
-  background-color: black;
+  background-color: var(--color-secondary);
 }
 .word:is(.word--correct)::after {
   background-color: var(--color-correct);
@@ -49,6 +53,11 @@
   left: 0;
   top: 0;
   z-index: 2;
+  color: var(--color-secondary);
+  background-color: var(--color-primary);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .settings--open {
   display: flex;
@@ -60,8 +69,81 @@
   margin: 1rem;
   align-self: flex-end;
 }
-main {
+button {
+  border: 2px solid var(--color-secondary);
+  border-radius: 0.25rem;
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+}
+button:hover {
+  cursor: pointer;
+}
+.settings-options * {
+  font-size: 1.5rem;
+}
+.settings-options {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  width: 100%;
+  padding: 1rem;
+  max-width: 60rem;
+}
+.settings-options__option {
+  padding-bottom: 1rem;
+  padding-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  align-items: center;
+}
+.settings-options > .settings-options__option:not(:last-child)::after {
+  content: "";
+  width: 100%;
+  position: absolute;
+  height: 2px;
+  background-color: var(--color-secondary);
+  bottom: 0;
+  left: 0;
+}
+.settings input,
+.settings select {
+  outline: none;
+  border: 2px solid var(--color-secondary);
+  border-radius: 0.25rem;
+  padding: 0.125rem;
+  background-color: var(--color-primary);
+  color: var(--color-secondary);
+}
+.settings input[type="number"] {
+  width: 5rem;
+}
+.test {
+  flex: 1;
+  color: var(--color-secondary);
+  background-color: var(--color-primary);
+  max-width: 60rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.test-header {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
+}
+.test-header__start-queue,
+.test-header__timer {
+  font-size: 1.5rem;
+}
+.test-header__restart-button {
+  padding: 0.5rem;
+  font-size: 1.5rem;
+}
+.test-stats {
+  font-size: 2rem;
+}
+main {
+  background-color: var(--color-primary);
 }

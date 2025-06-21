@@ -1,6 +1,6 @@
 import "./stylesheets/style.css"
 import classNames from "classnames"
-import { useState, useEffect } from "preact/hooks"
+import { useState, useEffect, useRef } from "preact/hooks"
 import useTimer from "./hooks/useTimer"
 import { Faker, en } from "@faker-js/faker"
 import Settings from "./components/Settings"
@@ -8,9 +8,6 @@ import Settings from "./components/Settings"
 const faker = new Faker({
   locale: [en],
 })
-
-const sampleWords =
-  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc mattis, turpis ut posuere consequat, risus ex feugiat nisi, sed auctor ligula sapien ut risus. Vivamus nec mauris porttitor ante posuere facilisis. Morbi dolor erat, hendrerit sed gravida et, egestas ac libero. Aenean tempus massa id finibus ullamcorper. Vestibulum metus magna, rutrum in dignissim nec, mollis vel diam. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Quisque pretium sem nulla, sed consequat massa pellentesque quis. Quisque feugiat nulla non augue placerat scelerisque. Nullam porta, nisl eget feugiat dapibus, elit nunc faucibus ipsum, ac hendrerit erat ipsum a purus. Nunc lacinia, enim eget interdum facilisis, eros diam laoreet sapien, ut semper augue nibh ac dolor. Sed in sapien sem"
 
 const loadSettings = () => {
   const saved = localStorage.getItem("settings")
@@ -38,7 +35,7 @@ const App = () => {
     root.classList.remove("theme--light")
     root.classList.remove("theme--auto")
     root.classList.add(`theme--${settings.theme}`)
-  }, [settings])
+  }, [settings.theme])
   return (
     <>
       <header></header>
@@ -50,9 +47,12 @@ const App = () => {
     </>
   )
 }
+window.addEventListener("resize", () => {})
 
 const Test = ({ settings }) => {
-  const timer = useTimer(settings.time, () => {})
+  const timer = useTimer(settings.time, () => {
+    setStarted(false)
+  })
   const [mistyped, setMistyped] = useState(0)
   const [finalMistakes, setFinalMistakes] = useState(0)
   const [totalTyped, setTotalTyped] = useState(0)
@@ -61,41 +61,58 @@ const Test = ({ settings }) => {
     timer.setLimit(settings.time)
   }, [settings])
   return (
-    <div>
-      {!timer.expired && <div>{timer.time}</div>}
-      {(!started || timer.expired) && (
-        <button
-          onClick={() => {
-            setFinalMistakes(0)
-            setTotalTyped(0)
-            setMistyped(0)
-            setStarted(true)
-            timer.reset()
-            timer.play()
-          }}
-        >
-          {timer.expired ? "Restart" : "Start"}
-        </button>
-      )}
-      {!timer.expired && started && (
-        <TestWords
-          paused={timer.paused}
-          setFinalMistakes={setFinalMistakes}
-          setMistyped={setMistyped}
-          setTotalTyped={setTotalTyped}
-          started={started}
-        />
-      )}
+    <div className="test">
+      <div className="test-header">
+        {!timer.expired && !timer.paused && (
+          <div className="test-header__timer">{timer.time}</div>
+        )}
+        {timer.expired && (
+          <button
+            className="test-header__restart-button"
+            onClick={() => {
+              setFinalMistakes(0)
+              setTotalTyped(0)
+              setMistyped(0)
+              timer.reset()
+              setStarted(true)
+            }}
+          >
+            Restart
+          </button>
+        )}
+        {timer.paused && !timer.expired && (
+          <div className="test-header__start-queue">
+            Begin typing to start the test
+          </div>
+        )}
+      </div>
+      <div className="words-wrapper">
+        {!timer.expired && (
+          <TestWords
+            setFinalMistakes={setFinalMistakes}
+            setMistyped={setMistyped}
+            setTotalTyped={setTotalTyped}
+            started={started}
+            timer={timer}
+          />
+        )}
+      </div>
       {timer.expired && (
-        <div>
+        <div className="test-stats">
           <div>
-            Speed: {(totalTyped - finalMistakes) / 5 / (timer.duration / 60)}
+            Speed:{" "}
+            {Math.floor(
+              (totalTyped - finalMistakes) / 5 / (timer.elapsed / 60)
+            )}
             wpm
           </div>
-          <div>Raw Speed: {totalTyped / 5 / (timer.duration / 60)}</div>
           <div>
-            Accuracy: {Math.floor(((totalTyped - mistyped) / totalTyped) * 100)}
-            %
+            Raw Speed: {Math.floor(totalTyped / 5 / (timer.elapsed / 60))}
+            wpm
+          </div>
+          <div>
+            Accuracy:{" "}
+            {Math.floor(((totalTyped - mistyped) / (totalTyped || 1)) * 100)}%
           </div>
         </div>
       )}
@@ -104,17 +121,19 @@ const Test = ({ settings }) => {
 }
 
 const TestWords = ({
-  paused,
   setFinalMistakes,
   setMistyped,
   setTotalTyped,
   started,
+  timer,
 }) => {
   const [bufferedWords, setBufferedWords] = useState([])
   const [buffer, setBuffer] = useState("")
   const [words, setWords] = useState([])
+  const currentWordRef = useRef()
+  const wordListRef = useRef()
   const addWords = () => {
-    let newWords = faker.word.words(50).split(" ")
+    let newWords = faker.word.words(100).split(" ")
     setWords(words.concat(newWords))
   }
   useEffect(() => {
@@ -124,8 +143,20 @@ const TestWords = ({
     }
   }, [started])
   useEffect(() => {
-    if (paused) return
+    const word = root.querySelector(".word")
+    const wordList = root.querySelector(".test-words")
+    if (!word || !wordList) {
+      return
+    }
+    const wordDimensions = root.querySelector(".word").getBoundingClientRect()
+    const wordWrapper = root.querySelector(".test-words")
+    wordWrapper.style.maxHeight = `${wordDimensions.height * 5}px`
+  }, [words])
+  useEffect(() => {
     const getInput = e => {
+      if (timer.paused) {
+        timer.play()
+      }
       const incorrect =
         bufferedWords.reduce((acc, curr, index) => {
           let count = 0
@@ -171,14 +202,15 @@ const TestWords = ({
         }
         setBuffer(newBuffer)
       }
+      wordListRef.current.scroll(0, currentWordRef.current.offsetTop)
     }
     window.addEventListener("keydown", getInput)
     return () => {
       window.removeEventListener("keydown", getInput)
     }
-  }, [buffer, bufferedWords, paused, words])
+  }, [buffer, bufferedWords, timer.paused, words, currentWordRef])
   return (
-    <div className="test-words">
+    <div className="test-words" ref={wordListRef}>
       {words.map((word, wordIndex) => {
         let typedWord
         if (wordIndex < bufferedWords.length) {
@@ -197,8 +229,9 @@ const TestWords = ({
           "word--incorrect": !wordCorrect && typedWord,
         })
         const overflow = typedWord.slice(word.length, typedWord.length) || ""
+        const wordProps = wordCurrent ? { ref: currentWordRef } : {}
         return (
-          <div className={wordClass}>
+          <div className={wordClass} {...wordProps}>
             {Array.from(word).map((letter, index) => {
               const typedLetter = typedWord[index]
               const letterClass = classNames({

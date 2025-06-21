@@ -16,12 +16,13 @@ const Settings = ({ settings, setSettings }) => {
         Settings
       </button>
       <div className={settingsClass}>
-        <ul>
-          <li>
-            <span>Time</span>
+        <ul className="settings-options">
+          <li className="settings-options__option">
+            <span>Time (seconds)</span>
             <input
               type="number"
               aria-label="timer-value"
+              name="timer-value"
               value={settings.time}
               onInput={e => {
                 setSettings({
@@ -31,7 +32,7 @@ const Settings = ({ settings, setSettings }) => {
               }}
             />
           </li>
-          <li>
+          <li className="settings-options__option">
             <span>Theme</span>
             <select
               name="theme"
@@ -48,7 +49,7 @@ const Settings = ({ settings, setSettings }) => {
               <option value="auto">Auto</option>
             </select>
           </li>
-          <li>
+          <li className="settings-options__option">
             <span>Capitalization</span>
             <select
               name="capitalization"
@@ -64,8 +65,8 @@ const Settings = ({ settings, setSettings }) => {
               <option value={true}>On</option>
             </select>
           </li>
-          <li>
-            <span>Punctation</span>
+          <li className="settings-options__option">
+            <span>Punctuation</span>
             <select
               name="punctuation"
               onInput={e => {
