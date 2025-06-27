@@ -30,12 +30,7 @@ const App = () => {
     setSettings(newSettings)
     localStorage.setItem("settings", JSON.stringify(newSettings))
   }
-  useEffect(() => {
-    root.classList.remove("theme--dark")
-    root.classList.remove("theme--light")
-    root.classList.remove("theme--auto")
-    root.classList.add(`theme--${settings.theme}`)
-  }, [settings.theme])
+  root.className = `theme--${settings.theme}`
   return (
     <>
       <header></header>
@@ -94,6 +89,7 @@ const Test = ({ settings }) => {
             setTotalTyped={setTotalTyped}
             started={started}
             timer={timer}
+            settings={settings}
           />
         )}
       </div>
@@ -120,12 +116,31 @@ const Test = ({ settings }) => {
   )
 }
 
+const getPunctuation = () => {
+  const rand = Math.floor(Math.random() * 1000)
+  if (rand < 65) {
+    return "."
+  } else if (rand < 126) {
+    return ","
+  } else if (rand < 132) {
+    return "?"
+  } else if (rand < 135) {
+    return ":"
+  } else if (rand < 138) {
+    return "!"
+  } else if (rand < 141) {
+    return ";"
+  }
+  return ""
+}
+
 const TestWords = ({
   setFinalMistakes,
   setMistyped,
   setTotalTyped,
   started,
   timer,
+  settings,
 }) => {
   const [bufferedWords, setBufferedWords] = useState([])
   const [buffer, setBuffer] = useState("")
@@ -133,7 +148,15 @@ const TestWords = ({
   const currentWordRef = useRef()
   const wordListRef = useRef()
   const addWords = () => {
-    let newWords = faker.word.words(100).split(" ")
+    let newWords = faker.word
+      .words(100)
+      .split(" ")
+      .map(word => {
+        if (settings.punctuation) {
+          return word + getPunctuation()
+        }
+        return word
+      })
     setWords(words.concat(newWords))
   }
   useEffect(() => {
@@ -143,20 +166,7 @@ const TestWords = ({
     }
   }, [started])
   useEffect(() => {
-    const word = root.querySelector(".word")
-    const wordList = root.querySelector(".test-words")
-    if (!word || !wordList) {
-      return
-    }
-    const wordDimensions = root.querySelector(".word").getBoundingClientRect()
-    const wordWrapper = root.querySelector(".test-words")
-    wordWrapper.style.maxHeight = `${wordDimensions.height * 5}px`
-  }, [words])
-  useEffect(() => {
     const getInput = e => {
-      if (timer.paused) {
-        timer.play()
-      }
       const incorrect =
         bufferedWords.reduce((acc, curr, index) => {
           let count = 0
@@ -179,6 +189,9 @@ const TestWords = ({
         addWords()
       }
       if (e.key.length === 1) {
+        if (timer.paused) {
+          timer.play()
+        }
         if (e.key === " " && buffer.length) {
           setBufferedWords(bufferedWords.concat(buffer))
           setBuffer("")
@@ -202,13 +215,18 @@ const TestWords = ({
         }
         setBuffer(newBuffer)
       }
-      wordListRef.current.scroll(0, currentWordRef.current.offsetTop)
     }
     window.addEventListener("keydown", getInput)
     return () => {
       window.removeEventListener("keydown", getInput)
     }
   }, [buffer, bufferedWords, timer.paused, words, currentWordRef])
+  if (wordListRef.current && currentWordRef.current) {
+    wordListRef.current.scroll({
+      top: currentWordRef.current.offsetTop,
+      behavior: "smooth",
+    })
+  }
   return (
     <div className="test-words" ref={wordListRef}>
       {words.map((word, wordIndex) => {

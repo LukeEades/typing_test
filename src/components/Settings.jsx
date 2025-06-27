@@ -17,7 +17,7 @@ const Settings = ({ settings, setSettings }) => {
       </button>
       <div className={settingsClass}>
         <ul className="settings-options">
-          <li className="settings-options__option">
+          <Option index={0}>
             <span>Time (seconds)</span>
             <input
               type="number"
@@ -31,8 +31,8 @@ const Settings = ({ settings, setSettings }) => {
                 })
               }}
             />
-          </li>
-          <li className="settings-options__option">
+          </Option>
+          <Option index={1}>
             <span>Theme</span>
             <select
               name="theme"
@@ -48,8 +48,8 @@ const Settings = ({ settings, setSettings }) => {
               <option value="light">Light</option>
               <option value="auto">Auto</option>
             </select>
-          </li>
-          <li className="settings-options__option">
+          </Option>
+          <Option index={2}>
             <span>Capitalization</span>
             <select
               name="capitalization"
@@ -64,8 +64,8 @@ const Settings = ({ settings, setSettings }) => {
               <option value={false}>Off</option>
               <option value={true}>On</option>
             </select>
-          </li>
-          <li className="settings-options__option">
+          </Option>
+          <Option index={3}>
             <span>Punctuation</span>
             <select
               name="punctuation"
@@ -80,10 +80,17 @@ const Settings = ({ settings, setSettings }) => {
               <option value={false}>Off</option>
               <option value={true}>On</option>
             </select>
-          </li>
+          </Option>
         </ul>
       </div>
     </>
+  )
+}
+const Option = ({ children, index }) => {
+  return (
+    <li className="settings-options__option" style={`--index: ${index}`}>
+      {children}
+    </li>
   )
 }
 export default Settings
