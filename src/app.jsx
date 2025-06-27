@@ -149,12 +149,13 @@ const TestWords = ({
   const [buffer, setBuffer] = useState("")
   const [words, setWords] = useState([])
   useEffect(() => {
+    setWords(getWords())
     setBuffer("")
     setBufferedWords([])
   }, [settings])
   const currentWordRef = useRef()
   const wordListRef = useRef()
-  const addWords = () => {
+  const getWords = () => {
     let newWords = faker.word
       .words(100)
       .split(" ")
@@ -168,10 +169,10 @@ const TestWords = ({
         }
         return word
       })
-    setWords(words.concat(newWords))
+    return newWords
   }
   useEffect(() => {
-    addWords()
+    setWords(words.concat(getWords()))
     return () => {
       setWords([])
     }
