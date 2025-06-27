@@ -54,9 +54,11 @@ const Settings = ({ settings, setSettings }) => {
             <select
               name="capitalization"
               onInput={e => {
+                let newValue = e.target.value
+                newValue = JSON.parse(newValue)
                 setSettings({
                   ...settings,
-                  capitalization: e.target.value,
+                  capitalization: newValue,
                 })
               }}
               value={settings.capitalization}
@@ -70,9 +72,11 @@ const Settings = ({ settings, setSettings }) => {
             <select
               name="punctuation"
               onInput={e => {
+                let newValue = e.target.value
+                newValue = JSON.parse(newValue)
                 setSettings({
                   ...settings,
-                  punctuation: e.target.value,
+                  punctuation: newValue,
                 })
               }}
               value={settings.punctuation}

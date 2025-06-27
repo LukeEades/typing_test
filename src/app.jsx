@@ -42,7 +42,6 @@ const App = () => {
     </>
   )
 }
-window.addEventListener("resize", () => {})
 
 const Test = ({ settings }) => {
   const timer = useTimer(settings.time, () => {
@@ -52,8 +51,16 @@ const Test = ({ settings }) => {
   const [finalMistakes, setFinalMistakes] = useState(0)
   const [totalTyped, setTotalTyped] = useState(0)
   const [started, setStarted] = useState(false)
+  const reset = () => {
+    setFinalMistakes(0)
+    setTotalTyped(0)
+    setMistyped(0)
+    timer.reset()
+    setStarted(false)
+  }
   useEffect(() => {
     timer.setLimit(settings.time)
+    reset()
   }, [settings])
   return (
     <div className="test">
@@ -65,11 +72,7 @@ const Test = ({ settings }) => {
           <button
             className="test-header__restart-button"
             onClick={() => {
-              setFinalMistakes(0)
-              setTotalTyped(0)
-              setMistyped(0)
-              timer.reset()
-              setStarted(true)
+              reset()
             }}
           >
             Restart
@@ -145,6 +148,10 @@ const TestWords = ({
   const [bufferedWords, setBufferedWords] = useState([])
   const [buffer, setBuffer] = useState("")
   const [words, setWords] = useState([])
+  useEffect(() => {
+    setBuffer("")
+    setBufferedWords([])
+  }, [settings])
   const currentWordRef = useRef()
   const wordListRef = useRef()
   const addWords = () => {
@@ -152,6 +159,10 @@ const TestWords = ({
       .words(100)
       .split(" ")
       .map(word => {
+        let rand = Math.floor(Math.random() * 10)
+        if (rand === 1 && settings.capitalization) {
+          word = word.charAt(0).toUpperCase() + word.slice(1)
+        }
         if (settings.punctuation) {
           return word + getPunctuation()
         }
